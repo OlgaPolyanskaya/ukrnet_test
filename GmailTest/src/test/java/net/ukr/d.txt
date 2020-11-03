@@ -1,0 +1,87 @@
+package Tests;
+
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+public class UATest {
+
+    private static ChromeDriver driver;
+    private static WebDriverWait waiter;
+
+    @BeforeClass
+    public static void setUp() {
+        System.setProperty("webdriver.chrome.driver", "/Users/Kate/Desktop/chromedriver.exe");
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.get("https://www.i.ua/?_rand=1600871277");
+        waiter = new WebDriverWait(driver, 1000);
+        authorize();
+    }
+
+    private static void authorize() {
+        driver.findElement(By.cssSelector("[name='login']")).sendKeys("test.hw.qa.at@i.ua");
+        driver.findElement(By.cssSelector("[name='pass']")).sendKeys("qaat2020");
+        WebElement btn = driver.findElement(By.cssSelector("[value='Войти'"));
+        btn.click();
+    }
+
+    @Test
+    public void test_userNameExisted() {
+        String actual = driver.findElement(By.className("user_name")).getText();
+        String expected = "Daria";
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void checkMessagesQuantityBefore() {
+        WebElement container = waiter.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".list_underlined")));
+
+        String actual = container.findElement(By.tagName("li")).findElement(By.tagName("a")).getText();
+        String expected = "12\nВходящие";
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void writeMessage() {
+        WebElement btnMakeMessage = driver.findElement(By.cssSelector(".make_message"));
+        btnMakeMessage.click();
+
+        WebElement container = waiter.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".text_editor_browser")));
+        WebElement textArea = container.findElement(By.cssSelector("textarea[name='body']"));
+
+        WebElement fieldTo = driver.findElement(By.cssSelector(".to"));
+        WebElement textAreaTo = fieldTo.findElement(By.cssSelector("textarea[name='to']"));
+
+        WebElement fieldTheme = driver.findElement(By.cssSelector(".subj"));
+        WebElement textAreaTheme = fieldTheme.findElement(By.cssSelector("input[name='subject']"));
+
+        WebElement btnSend = driver.findElement(By.cssSelector("input[name='send']"));
+
+        textArea.sendKeys("HELLO MELLO");
+        textAreaTo.sendKeys("test.hw.qa.at@i.ua");
+        textAreaTheme.sendKeys("some theme");
+        String actual = btnSend.getAttribute("value");
+        btnSend.click();
+
+        String expected = "Отправить";
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void checkMessagesQuantityAfter() {
+        waiter.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".list_underlined")));
+        driver.navigate().refresh();
+        driver.navigate().refresh();
+        WebElement container = waiter.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".list_underlined")));
+
+        String actual = container.findElement(By.tagName("li")).findElement(By.tagName("a")).getText();
+        String expected = "13\nВходящие";
+        Assert.assertEquals(expected, actual);
+    }
+}
